@@ -9077,6 +9077,174 @@ cr.plugins_.Audio = function(runtime)
 }());
 ;
 ;
+cr.plugins_.Button = function(runtime)
+{
+	this.runtime = runtime;
+};
+(function ()
+{
+	var pluginProto = cr.plugins_.Button.prototype;
+	pluginProto.Type = function(plugin)
+	{
+		this.plugin = plugin;
+		this.runtime = plugin.runtime;
+	};
+	var typeProto = pluginProto.Type.prototype;
+	typeProto.onCreate = function()
+	{
+	};
+	pluginProto.Instance = function(type)
+	{
+		this.type = type;
+		this.runtime = type.runtime;
+	};
+	var instanceProto = pluginProto.Instance.prototype;
+	instanceProto.onCreate = function()
+	{
+		if (this.runtime.isDomFree)
+		{
+			cr.logexport("[Construct 2] Button plugin not supported on this platform - the object will not be created");
+			return;
+		}
+		this.elem = document.createElement("input");
+		this.elem.type = "button";
+		this.elem.id = this.properties[5];
+		jQuery(this.elem).appendTo(this.runtime.canvasdiv ? this.runtime.canvasdiv : "body");
+		this.elem.value = this.properties[0];
+		this.elem.title = this.properties[1];
+		this.elem.disabled = (this.properties[3] === 0);
+		this.autoFontSize = (this.properties[4] !== 0);
+		if (this.properties[2] === 0)
+		{
+			jQuery(this.elem).hide();
+			this.visible = false;
+		}
+		this.elem.onclick = (function (self) {
+			return function(e) {
+				e.stopPropagation();
+				self.runtime.trigger(cr.plugins_.Button.prototype.cnds.OnClicked, self);
+			};
+		})(this);
+		this.elem.addEventListener("touchstart", function (e) {
+			e.stopPropagation();
+		}, false);
+		this.elem.addEventListener("touchmove", function (e) {
+			e.stopPropagation();
+		}, false);
+		this.elem.addEventListener("touchend", function (e) {
+			e.stopPropagation();
+		}, false);
+		jQuery(this.elem).mousedown(function (e) {
+			e.stopPropagation();
+		});
+		jQuery(this.elem).mouseup(function (e) {
+			e.stopPropagation();
+		});
+		jQuery(this.elem).keydown(function (e) {
+			e.stopPropagation();
+		});
+		jQuery(this.elem).keyup(function (e) {
+			e.stopPropagation();
+		});
+		this.updatePosition();
+		this.runtime.tickMe(this);
+	};
+	instanceProto.onDestroy = function ()
+	{
+		if (this.runtime.isDomFree)
+			return;
+		jQuery(this.elem).remove();
+		this.elem = null;
+	};
+	instanceProto.tick = function ()
+	{
+		this.updatePosition();
+	};
+	instanceProto.updatePosition = function ()
+	{
+		if (this.runtime.isDomFree)
+			return;
+		var left = this.layer.layerToCanvas(this.x, this.y, true);
+		var top = this.layer.layerToCanvas(this.x, this.y, false);
+		var right = this.layer.layerToCanvas(this.x + this.width, this.y + this.height, true);
+		var bottom = this.layer.layerToCanvas(this.x + this.width, this.y + this.height, false);
+		if (!this.visible || !this.layer.visible || right <= 0 || bottom <= 0 || left >= this.runtime.width || top >= this.runtime.height)
+		{
+			jQuery(this.elem).hide();
+			return;
+		}
+		if (left < 1)
+			left = 1;
+		if (top < 1)
+			top = 1;
+		if (right >= this.runtime.width)
+			right = this.runtime.width - 1;
+		if (bottom >= this.runtime.height)
+			bottom = this.runtime.height - 1;
+		jQuery(this.elem).show();
+		var offx = Math.round(left) + jQuery(this.runtime.canvas).offset().left;
+		var offy = Math.round(top) + jQuery(this.runtime.canvas).offset().top;
+		jQuery(this.elem).offset({left: offx, top: offy});
+		jQuery(this.elem).width(Math.round(right - left));
+		jQuery(this.elem).height(Math.round(bottom - top));
+		if (this.autoFontSize)
+			jQuery(this.elem).css("font-size", (this.layer.getScale() - 0.2) + "em");
+	};
+	instanceProto.draw = function(ctx)
+	{
+	};
+	instanceProto.drawGL = function(glw)
+	{
+	};
+	function Cnds() {};
+	Cnds.prototype.OnClicked = function ()
+	{
+		return true;
+	};
+	pluginProto.cnds = new Cnds();
+	function Acts() {};
+	Acts.prototype.SetText = function (text)
+	{
+		if (this.runtime.isDomFree)
+			return;
+		this.elem.value = text;
+	};
+	Acts.prototype.SetTooltip = function (text)
+	{
+		if (this.runtime.isDomFree)
+			return;
+		this.elem.title = text;
+	};
+	Acts.prototype.SetVisible = function (vis)
+	{
+		if (this.runtime.isDomFree)
+			return;
+		this.visible = (vis !== 0);
+	};
+	Acts.prototype.SetEnabled = function (en)
+	{
+		if (this.runtime.isDomFree)
+			return;
+		this.elem.disabled = (en === 0);
+	};
+	Acts.prototype.SetFocus = function ()
+	{
+		if (this.runtime.isDomFree)
+			return;
+		this.elem.focus();
+	};
+	Acts.prototype.SetCSSStyle = function (p, v)
+	{
+		if (this.runtime.isDomFree)
+			return;
+		jQuery(this.elem).css(p, v);
+	};
+	pluginProto.acts = new Acts();
+	function Exps() {};
+	pluginProto.exps = new Exps();
+}());
+;
+;
 cr.plugins_.Keyboard = function(runtime)
 {
 	this.runtime = runtime;
@@ -10723,6 +10891,201 @@ cr.plugins_.Text = function(runtime)
 }());
 ;
 ;
+cr.behaviors.Bullet = function(runtime)
+{
+	this.runtime = runtime;
+};
+(function ()
+{
+	var behaviorProto = cr.behaviors.Bullet.prototype;
+	behaviorProto.Type = function(behavior, objtype)
+	{
+		this.behavior = behavior;
+		this.objtype = objtype;
+		this.runtime = behavior.runtime;
+	};
+	var behtypeProto = behaviorProto.Type.prototype;
+	behtypeProto.onCreate = function()
+	{
+	};
+	behaviorProto.Instance = function(type, inst)
+	{
+		this.type = type;
+		this.behavior = type.behavior;
+		this.inst = inst;				// associated object instance to modify
+		this.runtime = type.runtime;
+	};
+	var behinstProto = behaviorProto.Instance.prototype;
+	behinstProto.onCreate = function()
+	{
+		var speed = this.properties[0];
+		this.acc = this.properties[1];
+		this.g = this.properties[2];
+		this.bounceOffSolid = (this.properties[3] !== 0);
+		this.setAngle = (this.properties[4] !== 0);
+		this.dx = Math.cos(this.inst.angle) * speed;
+		this.dy = Math.sin(this.inst.angle) * speed;
+		this.lastx = this.inst.x;
+		this.lasty = this.inst.y;
+		this.lastKnownAngle = this.inst.angle;
+		this.travelled = 0;
+		this.enabled = true;
+	};
+	behinstProto.tick = function ()
+	{
+		if (!this.enabled)
+			return;
+		var dt = this.runtime.getDt(this.inst);
+		var s, a;
+		var bounceSolid, bounceAngle;
+		if (this.inst.angle !== this.lastKnownAngle)
+		{
+			if (this.setAngle)
+			{
+				s = cr.distanceTo(0, 0, this.dx, this.dy);
+				this.dx = Math.cos(this.inst.angle) * s;
+				this.dy = Math.sin(this.inst.angle) * s;
+			}
+			this.lastKnownAngle = this.inst.angle;
+		}
+		if (this.acc !== 0)
+		{
+			s = cr.distanceTo(0, 0, this.dx, this.dy);
+			if (this.dx === 0 && this.dy === 0)
+				a = this.inst.angle;
+			else
+				a = cr.angleTo(0, 0, this.dx, this.dy);
+			s += this.acc * dt;
+			if (s < 0)
+				s = 0;
+			this.dx = Math.cos(a) * s;
+			this.dy = Math.sin(a) * s;
+		}
+		if (this.g !== 0)
+			this.dy += this.g * dt;
+		this.lastx = this.inst.x;
+		this.lasty = this.inst.y;
+		if (this.dx !== 0 || this.dy !== 0)
+		{
+			this.inst.x += this.dx * dt;
+			this.inst.y += this.dy * dt;
+			this.travelled += cr.distanceTo(0, 0, this.dx * dt, this.dy * dt)
+			if (this.setAngle)
+			{
+				this.inst.angle = cr.angleTo(0, 0, this.dx, this.dy);
+				this.inst.set_bbox_changed();
+				this.lastKnownAngle = this.inst.angle;
+			}
+			this.inst.set_bbox_changed();
+			if (this.bounceOffSolid)
+			{
+				bounceSolid = this.runtime.testOverlapSolid(this.inst);
+				if (bounceSolid)
+				{
+					this.runtime.registerCollision(this.inst, bounceSolid);
+					s = cr.distanceTo(0, 0, this.dx, this.dy);
+					bounceAngle = this.runtime.calculateSolidBounceAngle(this.inst, this.lastx, this.lasty);
+					this.dx = Math.cos(bounceAngle) * s;
+					this.dy = Math.sin(bounceAngle) * s;
+					this.inst.x += this.dx * dt;			// move out for one tick since the object can't have spent a tick in the solid
+					this.inst.y += this.dy * dt;
+					this.inst.set_bbox_changed();
+					if (this.setAngle)
+					{
+						this.inst.angle = bounceAngle;
+						this.lastKnownAngle = bounceAngle;
+						this.inst.set_bbox_changed();
+					}
+					if (!this.runtime.pushOutSolid(this.inst, this.dx / s, this.dy / s, Math.max(s * 2.5 * dt, 30)))
+						this.runtime.pushOutSolidNearest(this.inst, 100);
+				}
+			}
+		}
+	};
+	function Cnds() {};
+	Cnds.prototype.CompareSpeed = function (cmp, s)
+	{
+		return cr.do_cmp(cr.distanceTo(0, 0, this.dx, this.dy), cmp, s);
+	};
+	Cnds.prototype.CompareTravelled = function (cmp, d)
+	{
+		return cr.do_cmp(this.travelled, cmp, d);
+	};
+	behaviorProto.cnds = new Cnds();
+	function Acts() {};
+	Acts.prototype.SetSpeed = function (s)
+	{
+		var a = cr.angleTo(0, 0, this.dx, this.dy);
+		this.dx = Math.cos(a) * s;
+		this.dy = Math.sin(a) * s;
+	};
+	Acts.prototype.SetAcceleration = function (a)
+	{
+		this.acc = a;
+	};
+	Acts.prototype.SetGravity = function (g)
+	{
+		this.g = g;
+	};
+	Acts.prototype.SetAngleOfMotion = function (a)
+	{
+		a = cr.to_radians(a);
+		var s = cr.distanceTo(0, 0, this.dx, this.dy)
+		this.dx = Math.cos(a) * s;
+		this.dy = Math.sin(a) * s;
+	};
+	Acts.prototype.Bounce = function (objtype)
+	{
+		if (!objtype)
+			return;
+		var otherinst = objtype.getFirstPicked();
+		if (!otherinst)
+			return;
+		var dt = this.runtime.getDt(this.inst);
+		var s = cr.distanceTo(0, 0, this.dx, this.dy);
+		var bounceAngle = this.runtime.calculateSolidBounceAngle(this.inst, this.lastx, this.lasty, otherinst);
+		this.dx = Math.cos(bounceAngle) * s;
+		this.dy = Math.sin(bounceAngle) * s;
+		this.inst.x += this.dx * dt;			// move out for one tick since the object can't have spent a tick in the solid
+		this.inst.y += this.dy * dt;
+		this.inst.set_bbox_changed();
+		if (this.setAngle)
+		{
+			this.inst.angle = bounceAngle;
+			this.lastKnownAngle = bounceAngle;
+			this.inst.set_bbox_changed();
+		}
+		if (!this.runtime.pushOutSolid(this.inst, this.dx / s, this.dy / s, Math.max(s * 2.5 * dt, 30)))
+			this.runtime.pushOutSolidNearest(this.inst, 100);
+	};
+	Acts.prototype.SetEnabled = function (en)
+	{
+		this.enabled = (en === 1);
+	};
+	behaviorProto.acts = new Acts();
+	function Exps() {};
+	Exps.prototype.Speed = function (ret)
+	{
+		var s = cr.distanceTo(0, 0, this.dx, this.dy);
+		s = cr.round6dp(s);
+		ret.set_float(s);
+	};
+	Exps.prototype.Acceleration = function (ret)
+	{
+		ret.set_float(this.acc);
+	};
+	Exps.prototype.AngleOfMotion = function (ret)
+	{
+		ret.set_float(cr.to_degrees(cr.angleTo(0, 0, this.dx, this.dy)));
+	};
+	Exps.prototype.DistanceTravelled = function (ret)
+	{
+		ret.set_float(this.travelled);
+	};
+	behaviorProto.exps = new Exps();
+}());
+;
+;
 cr.behaviors.Pin = function(runtime)
 {
 	this.runtime = runtime;
@@ -11648,7 +12011,7 @@ cr.behaviors.solid = function(runtime)
 }());
 cr.getProjectModel = function() { return [
 	null,
-	null,
+	"SplashScreen",
 	[
 	[
 		cr.plugins_.Text,
@@ -11675,11 +12038,11 @@ cr.getProjectModel = function() { return [
 		false
 	]
 ,	[
-		cr.plugins_.Keyboard,
+		cr.plugins_.Button,
+		false,
 		true,
-		false,
-		false,
-		false,
+		true,
+		true,
 		false,
 		false,
 		false,
@@ -11696,6 +12059,18 @@ cr.getProjectModel = function() { return [
 		true,
 		true,
 		true,
+		false
+	]
+,	[
+		cr.plugins_.Keyboard,
+		true,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
 		false
 	]
 	],
@@ -11863,7 +12238,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/level1floorleftimages-sheet0.png", 19549, 0, 0, 366, 75, 1, 0.5, 0.506667,[],[]]
+				["images/level1floorleftimages-sheet0.png", 19536, 0, 0, 366, 75, 1, 0.5, 0.506667,[],[]]
 			]
 			]
 		],
@@ -11894,7 +12269,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/level1floorrightimages-sheet0.png", 19348, 0, 0, 366, 75, 1, 0.5, 0.506667,[],[]]
+				["images/level1floorrightimages-sheet0.png", 19335, 0, 0, 366, 75, 1, 0.5, 0.506667,[],[]]
 			]
 			]
 		],
@@ -11956,7 +12331,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/enemytikiimages-sheet0.png", 1564, 0, 0, 77, 92, 1, 0.506494, 0.5,[],[-0.220779,-0.26087,-0.012987,-0.445652,0.454545,0,0.311688,0.347826,-0.012987,0.456522,-0.155844,0.206522,-0.480519,0]]
+				["images/enemytikiimages-sheet0.png", 1564, 0, 0, 77, 92, 1, 0.506494, 0.5,[],[-0.22078,-0.26087,-0.0129875,-0.445652,0.454545,0,0.311688,0.347826,-0.0129875,0.456522,-0.155845,0.206522,-0.48052,0]]
 			]
 			]
 		],
@@ -12014,7 +12389,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/edgemarkerright-sheet0.png", 206, 0, 0, 256, 256, 1, 0.5, 0.5,[],[]]
+				["images/edgemarkerright-sheet0.png", 14883, 0, 0, 300, 45, 1, 0.5, 0.511111,[],[]]
 			]
 			]
 		],
@@ -12157,7 +12532,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/vineimages-sheet0.png", 119815, 0, 0, 323, 600, 1, 0.501548, 0.5,[],[0.0278638,-0.215,-0.00309598,-0.298333,0.0866873,-0.278333,0.0681115,0,0.160991,0.318333,-0.00309598,0.5,-0.160991,0.316667,-0.0804954,0]]
+				["images/vineimages-sheet0.png", 93809, 0, 0, 183, 376, 1, 0.502732, 0.5,[],[0.0273228,-0.242021,-0.00546423,-0.12766,0.497268,-0.5,0.497268,0.5,-0.00546423,0.49734,-0.431694,0.465426,-0.267759,0]]
 			]
 			]
 		],
@@ -12188,7 +12563,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/block-sheet0.png", 3020, 0, 0, 44, 44, 1, 0.5, 0.5,[],[]]
+				["images/block-sheet0.png", 5207, 0, 0, 44, 39, 1, 0.5, 0.512821,[],[-0.431818,-0.435897,0,-0.512821,0.431818,-0.435897,0.5,-0.0256415,0.431818,0.410256,0,0.487179,-0.431818,0.410256,-0.5,-0.0256415]]
 			]
 			]
 		],
@@ -12219,10 +12594,9 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/timewarp-sheet0.png", 56657, 142, 1, 100, 68, 1, 0.5, 0.5,[],[-0.38,-0.323529,0,-0.308824,0.26,-0.147059,0.4,0,0.44,0.411765,0,0.426471,-0.32,0.235294,-0.44,0]],
-				["images/timewarp-sheet0.png", 56657, 1, 1, 140, 95, 1, 0.5, 0.505263,[],[-0.378571,-0.326316,0,-0.315789,0.264286,-0.157895,0.392857,-0.0105263,0.442857,0.410526,0,0.410526,-0.321429,0.231579,-0.45,-0.0105263]],
-				["images/timewarp-sheet0.png", 56657, 142, 70, 100, 68, 1, 0.5, 0.5,[],[-0.38,-0.323529,0,-0.308824,0.26,-0.147059,0.4,0,0.44,0.411765,0,0.426471,-0.32,0.235294,-0.44,0]],
-				["images/timewarp-sheet0.png", 56657, 1, 97, 140, 95, 1, 0.5, 0.505263,[],[-0.378571,-0.326316,0,-0.315789,0.264286,-0.157895,0.392857,-0.0105263,0.442857,0.410526,0,0.410526,-0.321429,0.231579,-0.45,-0.0105263]]
+				["images/timewarp-sheet0.png", 38852, 142, 1, 100, 68, 1, 0.5, 0.5,[],[-0.38,-0.323529,0,-0.308824,0.26,-0.147059,0.4,0,0.44,0.411765,0,0.426471,-0.32,0.235294,-0.44,0]],
+				["images/timewarp-sheet0.png", 38852, 1, 1, 140, 95, 1, 0.5, 0.505263,[],[-0.378571,-0.326316,0,-0.315789,0.264286,-0.157895,0.392857,-0.0105262,0.442857,0.410526,0,0.410526,-0.321429,0.231579,-0.45,-0.0105262]],
+				["images/timewarp-sheet0.png", 38852, 142, 70, 100, 68, 1, 0.5, 0.5,[],[-0.38,-0.323529,0,-0.308824,0.26,-0.147059,0.4,0,0.44,0.411765,0,0.426471,-0.32,0.235294,-0.44,0]]
 			]
 			]
 		],
@@ -12295,7 +12669,7 @@ cr.getProjectModel = function() { return [
 			0,
 			false,
 			[
-				["images/screengameover-sheet0.png", 5624, 0, 0, 600, 600, 1, 0.5, 0.5,[],[]]
+				["images/screengameover-sheet0.png", 5606, 0, 0, 600, 600, 1, 0.5, 0.5,[],[]]
 			]
 			]
 		],
@@ -12326,6 +12700,323 @@ cr.getProjectModel = function() { return [
 			]
 			]
 		],
+		[
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t22",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/volcanobackground-sheet0.png", 286630, 0, 0, 541, 413, 1, 0.500924, 0.501211,[],[]]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t23",
+		cr.plugins_.Sprite,
+		false,
+		1,
+		1,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/enemydinosaur1-sheet0.png", 233, 0, 0, 256, 256, 1, 0.5, 0.5,[],[]]
+			]
+			]
+		],
+		[
+		[
+			"Platform",
+			cr.behaviors.Platform
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t24",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		1,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/enemydinosaur1image-sheet0.png", 33870, 0, 0, 260, 182, 1, 0.503846, 0.505495,[],[-0.4,-0.357143,-0.00384617,-0.175825,0.388462,-0.351649,0.361539,-0.00549453,0.180769,0.0439565,-0.00384617,0.390109,-0.15,-0.0109895,-0.134615,-0.00549453]]
+			]
+			]
+		],
+		[
+		[
+			"Pin",
+			cr.behaviors.Pin
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t25",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		1,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/caveroof-sheet0.png", 14883, 0, 0, 300, 45, 1, 0.5, 0.511111,[],[]]
+			]
+			]
+		],
+		[
+		[
+			"Solid",
+			cr.behaviors.solid
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t26",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/splashscreen-sheet0.png", 95216, 0, 0, 600, 600, 1, 0.5, 0.5,[],[]]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t27",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		0,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/screenlevel3-sheet0.png", 113218, 0, 0, 600, 600, 1, 0.5, 0.5,[],[]]
+			]
+			]
+		],
+		[
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t28",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		1,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/enemydinosaur2-sheet0.png", 216, 0, 0, 256, 256, 1, 0.5, 0.5,[],[]]
+			]
+			]
+		],
+		[
+		[
+			"Bullet",
+			cr.behaviors.Bullet
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t29",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		2,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/enemydinosaur2image-sheet0.png", 11699, 0, 0, 196, 116, 1, 0.5, 0.5,[],[-0.173469,0.051724,0,0.094828,0.122449,0.137931,0.096939,0,0.494898,0.491379,0,0.25,-0.153061,-0.086207,-0.107143,0]]
+			]
+			]
+		],
+		[
+		[
+			"Pin",
+			cr.behaviors.Pin
+		]
+,		[
+			"Solid",
+			cr.behaviors.solid
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t30",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		1,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/edgemarkerright2-sheet0.png", 14883, 0, 0, 300, 45, 1, 0.5, 0.511111,[],[]]
+			]
+			]
+		],
+		[
+		[
+			"Solid",
+			cr.behaviors.solid
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t31",
+		cr.plugins_.Sprite,
+		false,
+		0,
+		1,
+		0,
+		null,
+		[
+			[
+			"Default",
+			5,
+			false,
+			1,
+			0,
+			false,
+			[
+				["images/block2-sheet0.png", 5207, 0, 0, 44, 39, 1, 0.5, 0.512821,[],[-0.431818,-0.435898,0,-0.512821,0.431818,-0.435898,0.5,-0.025642,0.431818,0.410256,0,0.487179,-0.431818,0.410256,-0.5,-0.025642]]
+			]
+			]
+		],
+		[
+		[
+			"Solid",
+			cr.behaviors.solid
+		]
+		],
+		false,
+		false,
+		[]
+	]
+,	[
+		"t32",
+		cr.plugins_.Button,
+		false,
+		0,
+		0,
+		0,
+		null,
+		null,
 		[
 		],
 		false,
@@ -12438,7 +13129,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[609, 238, 0, 129, 421, 0, 0, 1, 0.501548, 0.5, 0, 0, []],
+				[598.027, 272, 0, 78, 321, 0, 0, 1, 0.502732, 0.5, 0, 0, []],
 				14,
 				[
 				],
@@ -12452,7 +13143,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[455, 232, 0, 44, 44, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[455, 232, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
 				15,
 				[
 				],
@@ -12466,7 +13157,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[541, 130, 0, 44, 44, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[541, 130, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
 				15,
 				[
 				],
@@ -12480,7 +13171,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[299, 209, 0, 44, 44, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[299, 209, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
 				15,
 				[
 				],
@@ -12494,7 +13185,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[160, 156, 0, 44, 44, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[160, 156, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
 				15,
 				[
 				],
@@ -12515,7 +13206,7 @@ cr.getProjectModel = function() { return [
 				[
 				],
 				[
-					0,
+					1,
 					0
 				]
 			]
@@ -12529,7 +13220,7 @@ cr.getProjectModel = function() { return [
 				[
 					"Text",
 					0,
-					"12pt Arial",
+					"bold italic 12pt Arial",
 					"rgb(255,255,255)",
 					0,
 					0,
@@ -12548,11 +13239,25 @@ cr.getProjectModel = function() { return [
 				[
 					"Text",
 					0,
-					"12pt Arial",
+					"bold italic 12pt Arial",
 					"rgb(255,255,255)",
 					0,
 					0,
 					0,
+					0,
+					0
+				]
+			]
+,			[
+				[343, 0, 0, 618, 21, 0, 0, 1, 0.5, 0.511111, 0, 0, []],
+				25,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
 					0,
 					0
 				]
@@ -12562,7 +13267,7 @@ cr.getProjectModel = function() { return [
 		]
 ,		[
 			"Main",
-			3,
+			1,
 			true,
 			[255, 255, 255],
 			true,
@@ -12662,7 +13367,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[68, 365, 0, 77, 92, 0, 0, 1, 0.506494, 0.5, 0, 0, []],
+				[67, 363, 0, 77, 92, 0, 0, 1, 0.506494, 0.5, 0, 0, []],
 				7,
 				[
 				],
@@ -12676,7 +13381,7 @@ cr.getProjectModel = function() { return [
 				]
 			]
 ,			[
-				[240, 358, 0, 32, 27, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				[240, 358, 0, 37.5, 4.74609, 0, 0, 1, 0.5, 0.511111, 0, 0, []],
 				9,
 				[
 				],
@@ -12700,7 +13405,7 @@ cr.getProjectModel = function() { return [
 		1280,
 		1024,
 		false,
-		null,
+		"Event sheet 4",
 		[
 		[
 			"Layer 0",
@@ -12728,6 +13433,22 @@ cr.getProjectModel = function() { return [
 					0
 				]
 			]
+,			[
+				[221, 435, 0, 170, 24, 0, 0, 1, 0, 0, 0, 0, []],
+				32,
+				[
+				],
+				[
+				],
+				[
+					"PLAY AGAIN",
+					"",
+					1,
+					1,
+					1,
+					""
+				]
+			]
 			],
 			[			]
 		]
@@ -12744,6 +13465,398 @@ cr.getProjectModel = function() { return [
 		"Event sheet 2",
 		[
 		[
+			"Background",
+			0,
+			true,
+			[255, 255, 255],
+			false,
+			1,
+			1,
+			1,
+			false,
+			1,
+			0,
+			0,
+			[
+			[
+				[321.5, 442.5, 0, 643, 73, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				12,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[324, 444, 0, 650, 75, 0, 0, 1, 0.5, 0.506667, 0, 0, []],
+				5,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[324, 204, 0, 648, 413, 0, 0, 1, 0.500924, 0.501211, 0, 0, []],
+				22,
+				[
+				],
+				[
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[368, 4, 0, 121, 30, 0, 0, 1, 0, 0, 0, 0, []],
+				17,
+				[
+				],
+				[
+				],
+				[
+					"Text",
+					0,
+					"bold italic 12pt Arial",
+					"rgb(255,255,255)",
+					0,
+					0,
+					0,
+					0,
+					0
+				]
+			]
+,			[
+				[132, 2, 0, 200, 30, 0, 0, 1, 0, 0, 0, 0, []],
+				18,
+				[
+				],
+				[
+				],
+				[
+					"Text",
+					0,
+					"bold italic 12pt Arial",
+					"rgb(255,255,255)",
+					0,
+					0,
+					0,
+					0,
+					0
+				]
+			]
+,			[
+				[-17, 208, 0, 432, 45, 0, 1.57082, 1, 0.5, 0.511111, 0, 0, []],
+				30,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[14, 287, 0, 43, 42, 0, -0.0949539, 1, 0.5, 0.512821, 0, 0, []],
+				15,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[578, 328, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
+				15,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[489, 222, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
+				15,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[362, 130, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
+				15,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[107, 170, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
+				15,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[247, 124, 0, 44, 39, 0, 0, 1, 0.5, 0.512821, 0, 0, []],
+				31,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+			],
+			[			]
+		]
+,		[
+			"Main",
+			1,
+			true,
+			[255, 255, 255],
+			true,
+			1,
+			1,
+			1,
+			false,
+			1,
+			0,
+			0,
+			[
+			[
+				[399, 371, 0, 41, 70, 0, 0, 1, 0.512195, 0.5, 0, 0, []],
+				2,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[392, 383, 0, 42, 70, 0, 0, 1, 0.333333, 0.7, 0, 0, []],
+				3,
+				[
+					0,
+					0
+				],
+				[
+				[
+					330,
+					1500,
+					1500,
+					650,
+					1500,
+					1000,
+					1
+				]
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[140, 345, 0, 206, 121, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				23,
+				[
+					"right"
+				],
+				[
+				[
+					330,
+					1500,
+					1500,
+					650,
+					1500,
+					1000,
+					0
+				]
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[181, 332, 0, 260, 182, 0, 0, 1, 0.503846, 0.505495, 0, 0, []],
+				24,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[563, 372, 0, 45.7031, 4.21875, 0, 0, 1, 0.5, 0.511111, 0, 0, []],
+				9,
+				[
+				],
+				[
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[56, 361, 0, 23, 24, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				8,
+				[
+				],
+				[
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[568, 57, 0, 57, 35, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				10,
+				[
+				],
+				[
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[59, 35, 0, 100, 68, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				16,
+				[
+				],
+				[
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[-159, 110, 0, 56, 49, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				28,
+				[
+				],
+				[
+				[
+					35,
+					0,
+					0,
+					0,
+					1
+				]
+				],
+				[
+					1,
+					0
+				]
+			]
+,			[
+				[-151, 99, 0, 100, 64, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				29,
+				[
+				],
+				[
+				[
+				],
+				[
+				]
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[663, 194, 0, 432, 45, 0, 1.57082, 1, 0.5, 0.511111, 0, 0, []],
+				30,
+				[
+				],
+				[
+				[
+				]
+				],
+				[
+					1,
+					0
+				]
+			]
+			],
+			[			]
+		]
+		],
+		[
+		],
+		[]
+	]
+,	[
+		"Level3",
+		1280,
+		1024,
+		false,
+		"Event sheet 5",
+		[
+		[
 			"Layer 0",
 			0,
 			true,
@@ -12758,8 +13871,65 @@ cr.getProjectModel = function() { return [
 			0,
 			[
 			[
-				[325, 301, 0, 652, 600, 0, 0, 1, 0.5, 0.5, 0, 0, []],
-				21,
+				[320.5, 301, 0, 639, 600, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				27,
+				[
+				],
+				[
+				],
+				[
+					0,
+					0
+				]
+			]
+,			[
+				[270, 495, 0, 170, 24, 0, 0, 1, 0, 0, 0, 0, []],
+				32,
+				[
+				],
+				[
+				],
+				[
+					"PLAY AGAIN",
+					"",
+					1,
+					1,
+					1,
+					""
+				]
+			]
+			],
+			[			]
+		]
+		],
+		[
+		],
+		[]
+	]
+,	[
+		"SplashScreen",
+		1280,
+		1024,
+		false,
+		"Event sheet 3",
+		[
+		[
+			"Layer 0",
+			0,
+			true,
+			[255, 255, 255],
+			false,
+			1,
+			1,
+			1,
+			false,
+			1,
+			0,
+			0,
+			[
+			[
+				[322, 247, 0, 644, 492, 0, 0, 1, 0.5, 0.5, 0, 0, []],
+				26,
 				[
 				],
 				[
@@ -14114,6 +15284,17 @@ false,false
 				]
 				]
 			]
+,			[
+				16,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
 			]
 		]
 ,		[
@@ -14299,6 +15480,1417 @@ false,false
 ,	[
 		"Event sheet 2",
 		[
+		[
+			0,
+			null,
+			false,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.OnLayoutStart,
+				null,
+				true,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				2,
+				cr.behaviors.Pin.prototype.acts.Pin,
+				"Pin"
+				,[
+				[
+					4,
+					3
+				]
+,				[
+					3,
+					0
+				]
+				]
+			]
+,			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
+				null
+				,[
+				[
+					1,
+					[
+						2,
+						"Standing"
+					]
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				3,
+				cr.plugins_.Sprite.prototype.acts.SetPos,
+				null
+				,[
+				[
+					0,
+					[
+						0,
+						370
+					]
+				]
+,				[
+					0,
+					[
+						0,
+						100
+					]
+				]
+				]
+			]
+,			[
+				5,
+				cr.behaviors.Pin.prototype.acts.Pin,
+				"Pin"
+				,[
+				[
+					4,
+					12
+				]
+,				[
+					3,
+					0
+				]
+				]
+			]
+,			[
+				19,
+				cr.plugins_.Audio.prototype.acts.Play,
+				null
+				,[
+				[
+					2,
+					["background",false]
+				]
+,				[
+					3,
+					1
+				]
+,				[
+					0,
+					[
+						0,
+						-5
+					]
+				]
+,				[
+					1,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+,			[
+				24,
+				cr.behaviors.Pin.prototype.acts.Pin,
+				"Pin"
+				,[
+				[
+					4,
+					23
+				]
+,				[
+					3,
+					0
+				]
+				]
+			]
+,			[
+				29,
+				cr.behaviors.Pin.prototype.acts.Pin,
+				"Pin"
+				,[
+				[
+					4,
+					28
+				]
+,				[
+					3,
+					0
+				]
+				]
+			]
+,			[
+				28,
+				cr.plugins_.Sprite.prototype.acts.SetAngle,
+				null
+				,[
+				[
+					0,
+					[
+						19,
+						cr.system_object.prototype.exps.random
+						,[
+[
+							0,
+							360
+						]
+						]
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				3,
+				cr.behaviors.Platform.prototype.cnds.OnMove,
+				"Platform",
+				true,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
+				null
+				,[
+				[
+					1,
+					[
+						2,
+						"Running"
+					]
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				0,
+				cr.plugins_.Keyboard.prototype.cnds.IsKeyDown,
+				null,
+				false,
+				false,
+				false,
+				false
+				,[
+				[
+					9,
+					37
+				]
+				]
+			]
+			],
+			[
+			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetMirrored,
+				null
+				,[
+				[
+					3,
+					0
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				0,
+				cr.plugins_.Keyboard.prototype.cnds.IsKeyDown,
+				null,
+				false,
+				false,
+				false,
+				false
+				,[
+				[
+					9,
+					39
+				]
+				]
+			]
+			],
+			[
+			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetMirrored,
+				null
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				0,
+				cr.plugins_.Keyboard.prototype.cnds.OnKeyReleased,
+				null,
+				true,
+				false,
+				false,
+				false
+				,[
+				[
+					9,
+					37
+				]
+				]
+			]
+			],
+			[
+			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
+				null
+				,[
+				[
+					1,
+					[
+						2,
+						"Standing"
+					]
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				0,
+				cr.plugins_.Keyboard.prototype.cnds.OnKeyReleased,
+				null,
+				true,
+				false,
+				false,
+				false
+				,[
+				[
+					9,
+					39
+				]
+				]
+			]
+			],
+			[
+			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
+				null
+				,[
+				[
+					1,
+					[
+						2,
+						"Standing"
+					]
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				3,
+				cr.behaviors.Platform.prototype.cnds.OnFall,
+				"Platform",
+				true,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				2,
+				cr.plugins_.Sprite.prototype.acts.SetAnim,
+				null
+				,[
+				[
+					1,
+					[
+						2,
+						"Falling"
+					]
+				]
+,				[
+					3,
+					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.EveryTick,
+				null,
+				false,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				17,
+				cr.plugins_.Text.prototype.acts.SetText,
+				null
+				,[
+				[
+					7,
+					[
+						10,
+						[
+							2,
+							"Score: "
+						]
+						,[
+							23,
+							"score"
+						]
+					]
+				]
+				]
+			]
+,			[
+				18,
+				cr.plugins_.Text.prototype.acts.SetText,
+				null
+				,[
+				[
+					7,
+					[
+						10,
+						[
+							2,
+							"Lives: "
+						]
+						,[
+							23,
+							"lives"
+						]
+					]
+				]
+				]
+			]
+,			[
+				28,
+				cr.plugins_.Sprite.prototype.acts.SetTowardPosition,
+				null
+				,[
+				[
+					0,
+					[
+						20,
+						3,
+						cr.plugins_.Sprite.prototype.exps.X,
+						false,
+						null
+					]
+				]
+,				[
+					0,
+					[
+						20,
+						3,
+						cr.plugins_.Sprite.prototype.exps.Y,
+						false,
+						null
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.CompareVar,
+				null,
+				false,
+				false,
+				false,
+				false
+				,[
+				[
+					11,
+					"lives"
+				]
+,				[
+					8,
+					0
+				]
+,				[
+					7,
+					[
+						0,
+						0
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				-1,
+				cr.system_object.prototype.acts.GoToLayout,
+				null
+				,[
+				[
+					6,
+					"GameOver"
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.cnds.IsOutsideLayout,
+				null,
+				false,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.acts.SetTowardPosition,
+				null
+				,[
+				[
+					0,
+					[
+						20,
+						3,
+						cr.plugins_.Sprite.prototype.exps.X,
+						false,
+						null
+					]
+				]
+,				[
+					0,
+					[
+						20,
+						3,
+						cr.plugins_.Sprite.prototype.exps.Y,
+						false,
+						null
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
+				null,
+				false,
+				false,
+				false,
+				false
+				,[
+				[
+					10,
+					0
+				]
+,				[
+					8,
+					0
+				]
+,				[
+					7,
+					[
+						2,
+						"right"
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				23,
+				cr.behaviors.Platform.prototype.acts.SimulateControl,
+				"Platform"
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				23,
+				cr.plugins_.Sprite.prototype.acts.SetMirrored,
+				null
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+,			[
+				23,
+				cr.behaviors.Platform.prototype.acts.SetMaxSpeed,
+				"Platform"
+				,[
+				[
+					0,
+					[
+						0,
+						55
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
+				null,
+				false,
+				false,
+				false,
+				false
+				,[
+				[
+					10,
+					0
+				]
+,				[
+					8,
+					0
+				]
+,				[
+					7,
+					[
+						2,
+						"left"
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				23,
+				cr.behaviors.Platform.prototype.acts.SimulateControl,
+				"Platform"
+				,[
+				[
+					3,
+					0
+				]
+				]
+			]
+,			[
+				23,
+				cr.plugins_.Sprite.prototype.acts.SetMirrored,
+				null
+				,[
+				[
+					3,
+					0
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					9
+				]
+				]
+			]
+			],
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
+				null
+				,[
+				[
+					10,
+					0
+				]
+,				[
+					7,
+					[
+						2,
+						"left"
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					8
+				]
+				]
+			]
+			],
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
+				null
+				,[
+				[
+					10,
+					0
+				]
+,				[
+					7,
+					[
+						2,
+						"right"
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				3,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					23
+				]
+				]
+			]
+			],
+			[
+			[
+				19,
+				cr.plugins_.Audio.prototype.acts.Play,
+				null
+				,[
+				[
+					2,
+					["dinosaur-roar",false]
+				]
+,				[
+					3,
+					0
+				]
+,				[
+					0,
+					[
+						0,
+						0
+					]
+				]
+,				[
+					1,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+,			[
+				19,
+				cr.plugins_.Audio.prototype.acts.Play,
+				null
+				,[
+				[
+					2,
+					["death",false]
+				]
+,				[
+					3,
+					0
+				]
+,				[
+					0,
+					[
+						0,
+						0
+					]
+				]
+,				[
+					1,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+,			[
+				3,
+				cr.plugins_.Sprite.prototype.acts.SetPos,
+				null
+				,[
+				[
+					0,
+					[
+						0,
+						419
+					]
+				]
+,				[
+					0,
+					[
+						0,
+						100
+					]
+				]
+				]
+			]
+,			[
+				-1,
+				cr.system_object.prototype.acts.SubVar,
+				null
+				,[
+				[
+					11,
+					"lives"
+				]
+,				[
+					7,
+					[
+						0,
+						1
+					]
+				]
+				]
+			]
+,			[
+				23,
+				cr.plugins_.Sprite.prototype.acts.SetPos,
+				null
+				,[
+				[
+					0,
+					[
+						0,
+						140
+					]
+				]
+,				[
+					0,
+					[
+						0,
+						330
+					]
+				]
+				]
+			]
+,			[
+				28,
+				cr.plugins_.Sprite.prototype.acts.SetPos,
+				null
+				,[
+				[
+					0,
+					[
+						0,
+						100
+					]
+				]
+,				[
+					0,
+					[
+						0,
+						64
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				3,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					10
+				]
+				]
+			]
+			],
+			[
+			[
+				-1,
+				cr.system_object.prototype.acts.AddVar,
+				null
+				,[
+				[
+					11,
+					"score"
+				]
+,				[
+					7,
+					[
+						0,
+						25
+					]
+				]
+				]
+			]
+,			[
+				10,
+				cr.plugins_.Sprite.prototype.acts.Destroy,
+				null
+			]
+,			[
+				19,
+				cr.plugins_.Audio.prototype.acts.Play,
+				null
+				,[
+				[
+					2,
+					["chirp",false]
+				]
+,				[
+					3,
+					0
+				]
+,				[
+					0,
+					[
+						0,
+						0
+					]
+				]
+,				[
+					1,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+,			[
+				3,
+				cr.plugins_.Sprite.prototype.acts.SetInstanceVar,
+				null
+				,[
+				[
+					10,
+					1
+				]
+,				[
+					7,
+					[
+						0,
+						1
+					]
+				]
+				]
+			]
+,			[
+				16,
+				cr.plugins_.Sprite.prototype.acts.SetVisible,
+				null
+				,[
+				[
+					3,
+					1
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				3,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					16
+				]
+				]
+			]
+			],
+			[
+			]
+			,[
+			[
+				0,
+				null,
+				false,
+				[
+				[
+					3,
+					cr.plugins_.Sprite.prototype.cnds.CompareInstanceVar,
+					null,
+					false,
+					false,
+					false,
+					false
+					,[
+					[
+						10,
+						1
+					]
+,					[
+						8,
+						0
+					]
+,					[
+						7,
+						[
+							0,
+							1
+						]
+					]
+					]
+				]
+				],
+				[
+				[
+					19,
+					cr.plugins_.Audio.prototype.acts.Play,
+					null
+					,[
+					[
+						2,
+						["warp",false]
+					]
+,					[
+						3,
+						0
+					]
+,					[
+						0,
+						[
+							0,
+							0
+						]
+					]
+,					[
+						1,
+						[
+							2,
+							""
+						]
+					]
+					]
+				]
+,				[
+					-1,
+					cr.system_object.prototype.acts.GoToLayout,
+					null
+					,[
+					[
+						6,
+						"Level3"
+					]
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				23,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					15
+				]
+				]
+			]
+			],
+			[
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				28,
+				cr.plugins_.Sprite.prototype.cnds.OnCollision,
+				null,
+				false,
+				false,
+				false,
+				true
+				,[
+				[
+					4,
+					3
+				]
+				]
+			]
+			],
+			[
+			[
+				19,
+				cr.plugins_.Audio.prototype.acts.Play,
+				null
+				,[
+				[
+					2,
+					["pterodactyl",false]
+				]
+,				[
+					3,
+					0
+				]
+,				[
+					0,
+					[
+						0,
+						0
+					]
+				]
+,				[
+					1,
+					[
+						2,
+						""
+					]
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			[
+				-1,
+				cr.system_object.prototype.cnds.Compare,
+				null,
+				false,
+				false,
+				false,
+				false
+				,[
+				[
+					7,
+					[
+						20,
+						3,
+						cr.plugins_.Sprite.prototype.exps.Y,
+						false,
+						null
+					]
+				]
+,				[
+					8,
+					3
+				]
+,				[
+					7,
+					[
+						0,
+						-220
+					]
+				]
+				]
+			]
+			],
+			[
+			[
+				3,
+				cr.plugins_.Sprite.prototype.acts.SetPos,
+				null
+				,[
+				[
+					0,
+					[
+						0,
+						419
+					]
+				]
+,				[
+					0,
+					[
+						0,
+						100
+					]
+				]
+				]
+			]
+			]
+		]
+		]
+	]
+,	[
+		"Event sheet 3",
+		[
+		[
+			0,
+			null,
+			false,
+			[
+			[
+				0,
+				cr.plugins_.Keyboard.prototype.cnds.OnAnyKey,
+				null,
+				true,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				-1,
+				cr.system_object.prototype.acts.GoToLayout,
+				null
+				,[
+				[
+					6,
+					"Level1"
+				]
+				]
+			]
+			]
+		]
+,		[
+			0,
+			null,
+			false,
+			[
+			],
+			[
+			]
+		]
+		]
+	]
+,	[
+		"Event sheet 4",
+		[
+		[
+			0,
+			null,
+			false,
+			[
+			[
+				32,
+				cr.plugins_.Button.prototype.cnds.OnClicked,
+				null,
+				true,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				-1,
+				cr.system_object.prototype.acts.GoToLayout,
+				null
+				,[
+				[
+					6,
+					"SplashScreen"
+				]
+				]
+			]
+,			[
+				-1,
+				cr.system_object.prototype.acts.ResetGlobals,
+				null
+			]
+			]
+		]
+		]
+	]
+,	[
+		"Event sheet 5",
+		[
+		[
+			0,
+			null,
+			false,
+			[
+			[
+				32,
+				cr.plugins_.Button.prototype.cnds.OnClicked,
+				null,
+				true,
+				false,
+				false,
+				false
+			]
+			],
+			[
+			[
+				-1,
+				cr.system_object.prototype.acts.ResetGlobals,
+				null
+			]
+,			[
+				-1,
+				cr.system_object.prototype.acts.GoToLayout,
+				null
+				,[
+				[
+					6,
+					"SplashScreen"
+				]
+				]
+			]
+			]
+		]
 		]
 	]
 	],
@@ -14316,3 +16908,4 @@ false,false
 	0,
 	false
 ];};
+
